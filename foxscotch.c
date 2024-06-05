@@ -3,6 +3,7 @@
 #include <linux/kernel.h>
 #include <linux/i2c.h>
 #include <linux/hwmon.h>
+#include <linux/version.h>
 
 #define IR35217_MODULE_NAME		"foxscotch"
 
@@ -563,8 +564,11 @@ int ir35217_detect(struct i2c_client *client, struct i2c_board_info *info)
 		printk(KERN_INFO "Found an IR35217 at 0x%04X, but it is not in AMD mode! Skipping.\n", client->addr);
 		return(-ENODEV);
 	}
-
+#if LINUX_VERSION_CODE > KERNEL_VERSION(6,8,0)
+	strscpy(info->type, "IR35217", I2C_NAME_SIZE);
+#else	
 	strlcpy(info->type, "IR35217", I2C_NAME_SIZE);
+#endif	
 	return(0);
 }
 
@@ -573,7 +577,11 @@ struct i2c_driver ir35217_driver =
 	.class = I2C_CLASS_HWMON,
 	.driver = { .name = "IR35217" },
 	.id_table = ir35217_idtable,
+#if LINUX_VERSION_CODE > KERNEL_VERSION(6,8,0)
+	.probe = ir35217_probe,
+#else
 	.probe_new = ir35217_probe,
+#endif
 	.detect = ir35217_detect,
 	.address_list = normal_i2c,
 };
